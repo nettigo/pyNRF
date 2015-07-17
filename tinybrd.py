@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 import struct
-import ctypes
 
 import RPi.GPIO as gpio
 import spidev
 
-WAIT = 0
+WAIT = 2
 SENT = 1
-LOST = 2
+LOST = 0
+
+BLOCK = True
+NONBLOCK = False
 
 class Protocol (object):
 
@@ -64,8 +66,8 @@ class NRF24L01P (object):
         self._protocol.register_write(0x01, 0b00000011)
         # enable data pipes 0, 1
         self._protocol.register_write(0x02, 0b00000011)
-        # address width 5 bytes
-        self._protocol.register_write(0x03, 0b00000011)
+        # address width 3 bytes
+        self._protocol.register_write(0x03, 0b00000001)
         # retransmission delay 4 ms, 15 times
         self._protocol.register_write(0x04, 0b11111111)
         # rf channel 1
@@ -257,8 +259,15 @@ class Radio (object):
         is_data_available_to_read = self.device.rx_status()
         return is_data_available_to_read
 
-    def flush(self):
-        is_data_delivered = self.device.tx_status()
+    def flush(self, blocking=BLOCK):
+        while True:
+            is_data_delivered = self.device.tx_status()
+            if not blocking:
+                break
+
+            if is_data_delivered != WAIT:
+                break
+
         return is_data_delivered
 
     def off(self):
