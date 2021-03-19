@@ -175,7 +175,7 @@ class NRF24L01P (object):
         size = response[1]
         return size
 
-    def speed_power(speed, power):
+    def speed_power(self, speed, power):
         reg_value = 0
         reg_value |= (speed & 0x01) << 3
         reg_value |= (speed & 0x02) << 5
@@ -183,14 +183,14 @@ class NRF24L01P (object):
         reg_value |= (power & 0x03) << 1
         self._protocol.register_write(0x06, reg_value)
 
-    def tx_data_lost():
+    def tx_data_lost(self):
         response = self._protocol.register_read(0x08)
         register_value = response[1]
         lost = register_value >> 4
         retr = register_value & 0x0f;
         return lost, retr
 
-    def rx_signal_strength():
+    def rx_signal_strength(self):
         response = self._protocol.register_read(0x09)
         register_value = response[1]
         return register_value
